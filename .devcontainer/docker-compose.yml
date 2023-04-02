@@ -1,0 +1,19 @@
+services:
+  ubuntu:
+    build: .
+    command: sleep infinity
+    volumes:
+      - ..:/workspaces/open-banking-archiver:cached
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=open_banking_archiver
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+  pgadmin:
+    image: "dpage/pgadmin4:latest"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=mail@example.com
+      - PGADMIN_DEFAULT_PASSWORD=postgres
+    ports:
+      - "8888:80"

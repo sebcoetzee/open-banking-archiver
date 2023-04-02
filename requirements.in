@@ -1,0 +1,9 @@
+click
+colorama
+jinja2
+nordigen
+psycopg[binary,pool]
+python-dotenv
+requests
+tabulate
+yoyo-migrations
