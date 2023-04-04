@@ -14,6 +14,7 @@ class Bank:
     external_id: str
     provider_type: ProviderType
     active_requisition_id: str = ""
+    activation_email_sent: bool = False
 
 
 @dataclass(frozen=True)

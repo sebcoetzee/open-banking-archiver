@@ -2,7 +2,7 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
 	"name": "open-banking-archiver",
-    "dockerComposeFile": "docker-compose.yml",
+	"dockerComposeFile": "docker-compose.yml",
 	"service": "ubuntu",
 	"workspaceFolder": "/workspaces/open-banking-archiver",
 	"shutdownAction": "stopCompose",
@@ -18,7 +18,10 @@
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	"customizations": {
 		"vscode": {
-			"extensions": ["ms-python.python"]
+			"extensions": [
+				"ms-python.python",
+				"njpwerner.autodocstring"
+			]
 		}
 	},
 	"remoteUser": "vscode",

@@ -26,9 +26,6 @@ from tabulate import tabulate
 logger = logging.getLogger(__name__)
 
 
-EMAIL_LINKS_SENT: set[int] = set()
-
-
 @click.group()
 @click.option("--verbose", is_flag=True)
 @click.option("--log-format", type=click.Choice(["cli", "formatted"], case_sensitive=False), default="cli")
@@ -210,15 +207,14 @@ def sync_transactions(poll_interval: int) -> None:
                 requisition_id=bank.active_requisition_id
             )
             if requisition["status"] == "LN":
-                if bank.id in EMAIL_LINKS_SENT:
-                    EMAIL_LINKS_SENT.remove(bank.id)
+                DB.set_activation_email_sent(bank.id, False)
             else:
-                if bank.id not in EMAIL_LINKS_SENT:
+                if not bank.activation_email_sent:
                     Email().send_link(resolve_config().user_email, bank, requisition["link"])
 
-                    # Add the bank ID to the `EMAIL_LINKS_SENT` set so that we
-                    # don't send the same email twice.
-                    EMAIL_LINKS_SENT.add(bank.id)
+                    # Mark the bank as having its activation email sent so we
+                    # don't send an email twice
+                    DB.set_activation_email_sent(bank.id, True)
 
                 continue
 
