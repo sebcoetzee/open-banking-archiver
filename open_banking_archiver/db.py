@@ -85,7 +85,12 @@ class PostgresDB:
         with self.conn() as conn:
             with conn.cursor(row_factory=class_row(Bank)) as curr:
                 logger.debug("Retrieving all banks")
-                curr.execute("SELECT id, name, external_id, active_requisition_id, provider_type FROM banks")
+                curr.execute(
+                    """
+                    SELECT id, name, external_id, active_requisition_id, provider_type, activation_email_sent
+                        FROM banks
+                    """
+                )
                 return tuple(curr.fetchall())
 
     def get_account(self, external_id: str) -> Account | None:
@@ -108,65 +113,110 @@ class PostgresDB:
         with self.conn() as conn:
             with conn.cursor() as curr:
                 logger.debug("Upserting %d banks", len(banks))
-                for bank in banks:
-                    curr.execute(
-                        """
-                        INSERT INTO banks (name, external_id, provider_type)
-                            VALUES (%(name)s, %(external_id)s, %(provider_type)s)
-                            ON CONFLICT (external_id) DO UPDATE
-                            SET name = %(name)s, provider_type = %(provider_type)s
-                        """,
-                        {
-                            "name": bank.name,
-                            "external_id": bank.external_id,
-                            "provider_type": bank.provider_type,
-                        },
-                    )
+                try:
+                    for bank in banks:
+                        curr.execute(
+                            """
+                            INSERT INTO banks (name, external_id, provider_type)
+                                VALUES (%(name)s, %(external_id)s, %(provider_type)s)
+                                ON CONFLICT (external_id) DO UPDATE
+                                SET name = %(name)s, provider_type = %(provider_type)s
+                            """,
+                            {
+                                "name": bank.name,
+                                "external_id": bank.external_id,
+                                "provider_type": bank.provider_type,
+                            },
+                        )
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
 
     def update_bank(self, bank: Bank) -> None:
         with self.conn() as conn:
             with conn.cursor() as curr:
                 logger.debug("Updating bank '%s'", bank.name)
-                curr.execute(
-                    """
-                    UPDATE banks
-                        SET name = %s, external_id = %s, provider_type = %s, active_requisition_id = %s
-                        WHERE id = %s
-                    """,
-                    (bank.name, bank.external_id, bank.provider_type, bank.active_requisition_id, bank.id),
-                )
+                try:
+                    curr.execute(
+                        """
+                        UPDATE banks
+                            SET name = %s, external_id = %s, provider_type = %s,
+                                active_requisition_id = %s, activation_email_sent = %s
+                            WHERE id = %s
+                        """,
+                        (
+                            bank.name,
+                            bank.external_id,
+                            bank.provider_type,
+                            bank.active_requisition_id,
+                            bank.activation_email_sent,
+                            bank.id,
+                        ),
+                    )
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
+
+    def set_activation_email_sent(self, bank_id: int, activation_email_sent: bool) -> None:
+        with self.conn() as conn:
+            with conn.cursor() as curr:
+                logger.debug("Updating bank ID %s's activation_email_sent", bank_id)
+                try:
+                    curr.execute(
+                        """
+                        UPDATE banks
+                            SET activation_email_sent = %s
+                            WHERE id = %s
+                        """,
+                        (
+                            activation_email_sent,
+                            bank_id,
+                        ),
+                    )
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
 
     def clear_requisition_id(self, requisition_id: str) -> None:
         with self.conn() as conn:
             with conn.cursor() as curr:
                 logger.debug("Clearing requisiton ID '%s'", requisition_id)
-                curr.execute(
-                    """
-                    UPDATE banks
-                        SET active_requisition_id = NULL
-                        WHERE active_requisition_id = %s
-                    """,
-                    (requisition_id,),
-                )
+                try:
+                    curr.execute(
+                        """
+                        UPDATE banks
+                            SET active_requisition_id = NULL
+                            WHERE active_requisition_id = %s
+                        """,
+                        (requisition_id,),
+                    )
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
 
     def upsert_account(self, account: Account) -> Account:
         with self.conn() as conn:
             with conn.cursor(row_factory=class_row(Account)) as curr:
                 logger.debug("Upserting account with external ID: %s", account.external_id)
-                curr.execute(
-                    """
-                    INSERT INTO accounts (bank_id, external_id, name)
-                        VALUES (%(bank_id)s, %(external_id)s, %(name)s)
-                        ON CONFLICT (bank_id, external_id)
-                        DO UPDATE SET name = %(name)s
-                        RETURNING id, bank_id, name, external_id
-                """,
-                    {
-                        "bank_id": account.bank_id,
-                        "external_id": account.external_id,
-                        "name": account.name,
-                    },
-                )
+                try:
+                    curr.execute(
+                        """
+                        INSERT INTO accounts (bank_id, external_id, name)
+                            VALUES (%(bank_id)s, %(external_id)s, %(name)s)
+                            ON CONFLICT (bank_id, external_id)
+                            DO UPDATE SET name = %(name)s
+                            RETURNING id, bank_id, name, external_id
+                    """,
+                        {
+                            "bank_id": account.bank_id,
+                            "external_id": account.external_id,
+                            "name": account.name,
+                        },
+                    )
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
+                    raise
                 return cast(Account, curr.fetchone())
 
     def upsert_transactions(self, transactions: Collection[Transaction]) -> None:
