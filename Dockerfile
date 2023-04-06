@@ -5,6 +5,7 @@ RUN mkdir -p /app
 WORKDIR /app
 
 COPY open_banking_archiver /app/open_banking_archiver/
+COPY sql /app/sql/
 COPY requirements.txt /app/
 
 RUN python3 -m pip install -r requirements.txt
