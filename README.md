@@ -1,5 +1,7 @@
 # Open Banking Archiver
 
+[![Lint](https://github.com/sebcoetzee/open-banking-archiver/actions/workflows/lint.yaml/badge.svg)](https://github.com/sebcoetzee/open-banking-archiver/actions/workflows/lint.yaml)
+
 Python-based application that requests Open Banking data from the Nordigen API and inserts it into a PostgreSQL database.
 
 ### Data Disclaimer
