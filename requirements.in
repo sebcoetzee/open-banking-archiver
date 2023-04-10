@@ -3,6 +3,7 @@ colorama
 jinja2
 nordigen
 psycopg[binary,pool]
+psycopg2-binary
 python-dotenv
 requests
 tabulate
