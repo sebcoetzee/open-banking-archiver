@@ -10,7 +10,23 @@ Python-based application that requests Open Banking data from the Nordigen API a
 
 ### Usage
 
-You can find the Docker image on [Docker Hub](https://hub.docker.com/repository/docker/sebcoetzee/open-banking-archiver/general). The easiest way to run the application is to run the Docker container directly:
+You can find the Docker image on [Docker Hub](https://hub.docker.com/repository/docker/sebcoetzee/open-banking-archiver/general). Docker is the easiest way to run the application in a server environment.
+
+#### Database Migrations
+
+The project uses [yoyo-migrations](https://ollycope.com/software/yoyo/latest/) in order to manage any database schema migrations for the underlying postgres database. In order to run the schema migrations, ensure that you have a Postgres database up and running with a user that has the appropriate superuser access. To run the migrations in Docker directly, run the following command:
+
+```
+docker run --rm -it \
+    sebcoetzee/open-banking-archiver:latest \
+    yoyo apply -p -b -d postgresql://<my_postgres_user>@<my_postgres_host>:<postgres_port>/<postgres_db_name> sql/
+```
+
+You will be prompted to enter the database password. The database migrations will then be applied.
+
+#### Running in Docker
+
+The easiest way to run the application is to run the Docker container directly. All the configuration options can be passed to the application as command-line arguments:
 
 ```
 docker run --rm -it \
@@ -18,7 +34,7 @@ docker run --rm -it \
     -e NORDIGEN_SECRET_KEY=my_secret_key \
     -e DB_HOST=my_postgres_host \
     -e DB_PORT=5432 \
-    -e DB_USER=postgres \
+    -e DB_USER=my_postgres_user \
     -e DB_PASSWORD=my_password \
     -e DB_NAME=open_banking_archiver \
     -e SMTP_HOST=my_smtp_server \

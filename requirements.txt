@@ -28,6 +28,8 @@ psycopg-binary==3.1.8
     # via psycopg
 psycopg-pool==3.1.7
     # via psycopg
+psycopg2-binary==2.9.6
+    # via -r requirements.in
 python-dotenv==1.0.0
     # via -r requirements.in
 requests==2.28.2
