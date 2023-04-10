@@ -29,8 +29,6 @@ class OpenBankingClient(NordigenClient):
     def exchange_token(self, refresh_token: str) -> TokenType:
         token = super().exchange_token(refresh_token)
         self.token_expires = token["access_expires"]
-        self.token_refresh = token["refresh"]
-        self.token_refresh_expires = token["refresh_expires"]
         self.token_generated = datetime.now()
         return token
 
