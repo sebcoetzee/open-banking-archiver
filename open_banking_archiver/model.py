@@ -45,7 +45,7 @@ class Transaction:
     transaction_code: str | None
     amount: Decimal
     currency: str
-    source_amount: float | None
+    source_amount: Decimal | None
     source_currency: str | None
     exchange_rate: float | None
     state: TransactionState
