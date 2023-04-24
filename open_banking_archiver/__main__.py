@@ -180,7 +180,7 @@ def parse_transactions_response(account: Account, response: dict[str, Any]) -> t
                     remittance_info=obj["remittanceInformationUnstructured"],
                     amount=Decimal(obj["transactionAmount"]["amount"]),
                     currency=obj["transactionAmount"]["currency"],
-                    source_amount=float(source_amount) if source_amount else None,
+                    source_amount=Decimal(source_amount) if source_amount else None,
                     source_currency=obj.get("currencyExchange", {}).get("sourceCurrency"),
                     exchange_rate=float(rate) if rate else None,
                     source_data=obj,
