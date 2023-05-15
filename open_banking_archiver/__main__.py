@@ -294,6 +294,33 @@ def link(bank_name: str) -> None:
 
 @cli.command()
 @click.argument("bank_name")
+def unlink(bank_name: str) -> None:
+    bank = DB.get_bank_by_name(bank_name)
+    if not bank:
+        logger.error("Unable to find bank with name '%s'", bank_name)
+        return
+
+    OPEN_BANKING_CLIENT.refresh_token()
+
+    requisition: dict | None = None
+
+    if bank.active_requisition_id:
+        try:
+            requisition = OPEN_BANKING_CLIENT.requisition.get_requisition_by_id(bank.active_requisition_id)
+        except requests.exceptions.HTTPError as err:
+            if err.response.status_code != 404:
+                raise
+
+    if requisition:
+        bank = replace(bank, active_requisition_id=None)
+        DB.update_bank(bank)
+        logger.info("Link with %s exists and has been removed.", bank_name)
+    else:
+        logger.info("No link currently exists with %s", bank_name)
+
+
+@cli.command()
+@click.argument("bank_name")
 def status(bank_name: str) -> None:
     bank = DB.get_bank_by_name(bank_name)
     if not bank:
